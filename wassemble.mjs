@@ -285,6 +285,80 @@ function read(str) {
     return ret;
 }
 
+const opcodes = {
+    'unreachable': 0x00, 'nop': 0x01,
+    'block': 0x02, 'loop': 0x03, 'if': 0X04, 'else': 0x05, 'end': 0x0B,
+    'br': 0x0C, 'br_if': 0x0D, 'br_table': 0x0E,
+    'return': 0X0F,
+    'call': 0x10, 'call_indirect': 0x11,
+    'drop': 0x1A, 'select': 0x1B,
+    'local.get': 0x20, 'local.set': 0x21, 'local.tee': 0x22,
+    'global.get': 0x23, 'global.set': 0x24,
+    'i32.load': 0x28, 'i64.load': 0x29, 'f32.load': 0x2A, 'f64.load': 0x2B,
+    'i32.load8_s': 0x2C, 'i32.load8_u': 0x2D,
+    'i32.load16_s': 0x2E, 'i32.load16_u': 0x2F,
+    'i64.load8_s': 0x30, 'i64.load8_u': 0x31,
+    'i64.load16_s': 0x32, 'i64.load16_u': 0x33,
+    'i64.load32_s': 0x34, 'i64.load32_u': 0x35,
+    'i32.store': 0x36, 'i64.store': 0x37,
+    'f32.store': 0x38, 'f64.store': 0x39,
+    'i32.store8': 0x3A, 'i32.store16': 0x3B,
+    'i64.store8': 0x3C, 'i64.store16': 0x3D, 'i64.store32': 0x3E,
+    'memory.size': 0x3F, 'memory.grow': 0x40,
+    'i32.const': 0x41, 'i64.const': 0x42,
+    'f32.const': 0x43, 'f64.const': 0x44,
+    'i32.eqz': 0x45, 'i32.eq': 0x46, 'i32.ne': 0x47,
+    'i32.lt_s': 0x48, 'i32.lt_u': 0x49, 'i32.gt_s': 0x4A, 'i32.gt_u': 0x4B,
+    'i32.le_s': 0x4C, 'i32.le_u': 0x4D, 'i32.ge_s': 0x4E, 'i32.ge_u': 0x4F,
+    'i64.eqz': 0x50, 'i64.eq': 0x51, 'i64.ne': 0x52,
+    'i64.lt_s': 0x53, 'i64.lt_u': 0x54, 'i64.gt_s': 0x55, 'i64.gt_u': 0x56,
+    'i64.le_s': 0x57, 'i64.le_u': 0x58, 'i64.ge_s': 0x59, 'i64.ge_u': 0x5A,
+    'f32.eq': 0x5B, 'f32.ne': 0x5C,
+    'f32.lt': 0x5D, 'f32.gt': 0x5E, 'f32.le': 0x5F, 'f32.ge': 0x60,
+    'f64.eq': 0x61, 'f64.ne': 0x62,
+    'f64.lt': 0x63, 'f64.gt': 0x64, 'f64.le': 0x65, 'f64.ge': 0x66,
+    'i32.clz': 0x67, 'i32.ctz': 0x68, 'i32.popcnt': 0x69,
+    'i32.add': 0x6A, 'i32.sub': 0x6B, 'i32.mul': 0x6C,
+    'i32.div_s': 0x6D, 'i32.div_u': 0x6E,
+    'i32.rem_s': 0x6F, 'i32.rem_u': 0x70,
+    'i32.and': 0x71, 'i32.or': 0x72, 'i32.xor': 0x73,
+    'i32.shl': 0x74, 'i32.shr_s': 0x75, 'i32.shr_u': 0x76,
+    'i32.rotl': 0x77, 'i32.rotr': 0x78,
+    'i64.clz': 0x79, 'i64.ctz': 0x7A, 'i64.popcnt': 0x7B,
+    'i64.add': 0x7C, 'i64.sub': 0x7D, 'i64.mul': 0x7E,
+    'i64.div_s': 0x7F, 'i64.div_u': 0x80,
+    'i64.rem_s': 0x81, 'i64.rem_u': 0x82,
+    'i64.and': 0x83, 'i64.or': 0x84, 'i64.xor': 0x85,
+    'i64.shl': 0x86, 'i64.shr_s': 0x87, 'i64.shr_u': 0x88,
+    'i64.rotl': 0x89, 'i64.rotr': 0x8A,
+    'f32.abs': 0x8B, 'f32.neg': 0x8C,
+    'f32.ceil': 0x8D, 'f32.floor': 0x8E, 'f32.trunc': 0x8F,
+    'f32.nearest': 0x90,
+    'f32.sqrt': 0x91,
+    'f32.add': 0x92, 'f32.sub': 0x93, 'f32.mul': 0x94, 'f32.div': 0x95,
+    'f32.min': 0x96, 'f32.max': 0x97, 'f32.copysign': 0x98,
+    'f64.abs': 0x99, 'f64.neg': 0x9A,
+    'f64.ceil': 0x9B, 'f64.floor': 0x9C, 'f64.trunc': 0x9D,
+    'f64.nearest': 0x9E,
+    'f64.sqrt': 0x9F,
+    'f64.add': 0xA0, 'f64.sub': 0xA1, 'f64.mul': 0xA2, 'f64.div': 0xA3,
+    'f64.min': 0xA4, 'f64.max': 0xA5, 'f64.copysign': 0xA6,
+    'i32.wrap_i64': 0xA7,
+    'i32.trunc_f32_s': 0xA8, 'i32.trunc_f32_u': 0xA9,
+    'i32.trunc_f64_s': 0xAA, 'i32.trunc_f64_u': 0xAB,
+    'i64.extend_i32_s': 0xAC, 'i64.extend_i32_u': 0xAD,
+    'i64.trunc_f32_s': 0xAE, 'i64.trunc_f32_u': 0xAF,
+    'i64.trunc_f64_s': 0xB0, 'i64.trunc_f64_u': 0xB1,
+    'f32.convert_i32_s': 0xB2, 'f32.convert_i32_u': 0xB3,
+    'f32.convert_i64_s': 0xB4, 'f32.convert_i64_u': 0xB5,
+    'f32.demote_f64': 0xB6,
+    'f64.convert_i32_s': 0xB7, 'f64.convert_i32_u': 0xB8,
+    'f64.convert_i64_s': 0xB9, 'f64.convert_i64_u': 0xBA,
+    'f64.promote_f32': 0xBB,
+    'i32.reinterpret_f32': 0xBC, 'i64.reinterpret_f64': 0xBD,
+    'f32.reinterpret_i32': 0xBE, 'f64.reinterpret_i64': 0xBF,
+};
+
 function parse(expr) {
     let isSeq = x => x instanceof Array;
     let isId  = x => typeof x == 'string' && x.startsWith('$');
@@ -371,6 +445,9 @@ function parse(expr) {
         }
         let { params, results } = parseFuncSig(x);
         return { idx, params, results };
+    }
+    function parseBlockType(x) {
+        return parseTypeUse(x);
     }
     function parseLimits(x) {
         let min = x.shift();
@@ -472,7 +549,7 @@ function parse(expr) {
             let label = popId(inst);
             let type = parseBlockType(inst);
             let folded = [];
-            while (!empty(inst) && !(isTagged[inst[0]] && inst[0][0] === 'then')) {
+            while (!empty(inst) && !(isTagged(inst[0]) && inst[0][0] === 'then')) {
                 folded.push(inst.shift());
             }
             assert(!empty(inst) && matchTagged(inst[0], 'then'), "bad folded if");
@@ -548,19 +625,29 @@ function parse(expr) {
         case 'i32.store16':
         case 'i64.store8':
         case 'i64.store16':
-        case 'i64.store32':
-            out.push([inst, parseMemArg(x)]);
+        case 'i64.store32': {
+            let arg = parseMemArg(inst);
+            if (arg.align) {
+                input.unshift(`align=${arg.align}`);
+            }
+            if (arg.offset) {
+                input.unshift(`offset=${arg.offset}`);
+            }
+            input.unshift(tag);
+            while (!empty(inst)) { input.unshift(inst.pop()); }
             break;
+        }
         case 'i32.const':
         case 'i64.const':
         case 'f32.const':
         case 'f64.const':
-            assert(!empty(inst))
             input.unshift(tag, inst.shift());
             while (!empty(inst)) { input.unshift(inst.pop()); }
             break;
         default:
-            out.push([inst]);
+            assert(tag in opcodes, `bad instruction: ${tag}`);
+            input.unshift(tag);
+            while (!empty(inst)) { input.unshift(inst.pop()); }
             break;
         }
     }
@@ -572,7 +659,6 @@ function parse(expr) {
         }
         let out = [];
         while (1) {
-            print('a', x);
             if (empty(x)) {
                 assert(blockKind == 'body',
                        "unexpected end of instruction sequence");
@@ -583,21 +669,19 @@ function parse(expr) {
                 unfoldInstruction(inst, x);
                 continue;
             }
-            print('hey', inst, x);
             assert(isKw(inst), `bad instruction: ${inst}`);
-            print('hey2', inst, x);
             switch (inst) {
             case 'block':
             case 'loop': {
                 let label = popId(x);
-                let type = popBlockType(x);
+                let type = parseBlockType(x);
                 out.push([inst, label, type, parseInstructions(x, inst)]);
                 skipEndLabel(label);
                 break;
             }
             case 'if': {
                 let label = popId(x);
-                let type = popBlockType(x);
+                let type = parseBlockType(x);
                 let thenInsts = parseInstructions(x, 'then');
                 let how = thenInsts.pop();
                 skipEndLabel(label);
@@ -663,7 +747,6 @@ function parse(expr) {
                 out.push([inst, parseMemArg(x)]);
                 break;
             case 'i32.const':
-                print('hi!!!!!!', x, isS32(x[0]))
                 assert(!empty(x) && isS32(x[0]),
                        `expected an s32: ${x[0]}`)
                 out.push([inst, x.shift()]);
@@ -866,7 +949,7 @@ function parse(expr) {
     let mod = { id, types, imports, funcs, tables, mems, globals, exports,
                 start, elems, datas };
     let ids = {}
-    for (let [k, v] of Object.keys(mod)) {
+    for (let [k, v] of Object.entries(mod)) {
         ids[k] = {};
         if (v instanceof Array) {
             for (let [idx, x] of v.entries()) {
@@ -875,8 +958,10 @@ function parse(expr) {
         }
     }
     function resolveIdx(idx, kind) {
-        return isU32(idx) ? idx
-            : assert(ids[kind][idx], "unbound identifier in ${kind}: ${idx}");
+        if (isU32(idx)) { return idx; }
+        let res = ids[kind][idx];
+        assert(res !== undefined, `unbound identifier in ${kind}: ${idx}`);
+        return res;
     }
     function resolveTypeUse(x) {
         if (x.idx !== undefined) {
@@ -1018,80 +1103,6 @@ function parse(expr) {
 }
 
 function assemble(mod) {
-    const opcodes = {
-        'unreachable': 0x00, 'nop': 0x01,
-        'block': 0x02, 'loop': 0x03, 'if': 0X04, 'else': 0x05, 'end': 0x0B,
-        'br': 0x0C, 'br_if': 0x0D, 'br_table': 0x0E,
-        'return': 0X0F,
-        'call': 0x10, 'call_indirect': 0x11,
-        'drop': 0x1A, 'select': 0x1B,
-        'local.get': 0x20, 'local.set': 0x21, 'local.tee': 0x22,
-        'global.get': 0x23, 'global.set': 0x24,
-        'i32.load': 0x28, 'i64.load': 0x29, 'f32.load': 0x2A, 'f64.load': 0x2B,
-        'i32.load8_s': 0x2C, 'i32.load8_u': 0x2D,
-        'i32.load16_s': 0x2E, 'i32.load16_u': 0x2F,
-        'i64.load8_s': 0x30, 'i64.load8_u': 0x31,
-        'i64.load16_s': 0x32, 'i64.load16_u': 0x33,
-        'i64.load32_s': 0x34, 'i64.load32_u': 0x35,
-        'i32.store': 0x36, 'i64.store': 0x37,
-        'f32.store': 0x38, 'f64.store': 0x39,
-        'i32.store8': 0x3A, 'i32.store16': 0x3B,
-        'i64.store8': 0x3C, 'i64.store16': 0x3D, 'i64.store32': 0x3E,
-        'memory.size': 0x3F, 'memory.grow': 0x40,
-        'i32.const': 0x41, 'i64.const': 0x42,
-        'f32.const': 0x43, 'f64.const': 0x44,
-        'i32.eqz': 0x45, 'i32.eq': 0x46, 'i32.ne': 0x47,
-        'i32.lt_s': 0x48, 'i32.lt_u': 0x49, 'i32.gt_s': 0x4A, 'i32.gt_u': 0x4B,
-        'i32.le_s': 0x4C, 'i32.le_u': 0x4D, 'i32.ge_s': 0x4E, 'i32.ge_u': 0x4F,
-        'i64.eqz': 0x50, 'i64.eq': 0x51, 'i64.ne': 0x52,
-        'i64.lt_s': 0x53, 'i64.lt_u': 0x54, 'i64.gt_s': 0x55, 'i64.gt_u': 0x56,
-        'i64.le_s': 0x57, 'i64.le_u': 0x58, 'i64.ge_s': 0x59, 'i64.ge_u': 0x5A,
-        'f32.eq': 0x5B, 'f32.ne': 0x5C,
-        'f32.lt': 0x5D, 'f32.gt': 0x5E, 'f32.le': 0x5F, 'f32.ge': 0x60,
-        'f64.eq': 0x61, 'f64.ne': 0x62,
-        'f64.lt': 0x63, 'f64.gt': 0x64, 'f64.le': 0x65, 'f64.ge': 0x66,
-        'i32.clz': 0x67, 'i32.ctz': 0x68, 'i32.popcnt': 0x69,
-        'i32.add': 0x6A, 'i32.sub': 0x6B, 'i32.mul': 0x6C,
-        'i32.div_s': 0x6D, 'i32.div_u': 0x6E,
-        'i32.rem_s': 0x6F, 'i32.rem_u': 0x70,
-        'i32.and': 0x71, 'i32.or': 0x72, 'i32.xor': 0x73,
-        'i32.shl': 0x74, 'i32.shr_s': 0x75, 'i32.shr_u': 0x76,
-        'i32.rotl': 0x77, 'i32.rotr': 0x78,
-        'i64.clz': 0x79, 'i64.ctz': 0x7A, 'i64.popcnt': 0x7B,
-        'i64.add': 0x7C, 'i64.sub': 0x7D, 'i64.mul': 0x7E,
-        'i64.div_s': 0x7F, 'i64.div_u': 0x80,
-        'i64.rem_s': 0x81, 'i64.rem_u': 0x82,
-        'i64.and': 0x83, 'i64.or': 0x84, 'i64.xor': 0x85,
-        'i64.shl': 0x86, 'i64.shr_s': 0x87, 'i64.shr_u': 0x88,
-        'i64.rotl': 0x89, 'i64.rotr': 0x8A,
-        'f32.abs': 0x8B, 'f32.neg': 0x8C,
-        'f32.ceil': 0x8D, 'f32.floor': 0x8E, 'f32.trunc': 0x8F,
-        'f32.nearest': 0x90,
-        'f32.sqrt': 0x91,
-        'f32.add': 0x92, 'f32.sub': 0x93, 'f32.mul': 0x94, 'f32.div': 0x95,
-        'f32.min': 0x96, 'f32.max': 0x97, 'f32.copysign': 0x98,
-        'f64.abs': 0x99, 'f64.neg': 0x9A,
-        'f64.ceil': 0x9B, 'f64.floor': 0x9C, 'f64.trunc': 0x9D,
-        'f64.nearest': 0x9E,
-        'f64.sqrt': 0x9F,
-        'f64.add': 0xA0, 'f64.sub': 0xA1, 'f64.mul': 0xA2, 'f64.div': 0xA3,
-        'f64.min': 0xA4, 'f64.max': 0xA5, 'f64.copysign': 0xA6,
-        'i32.wrap_i64': 0xA7,
-        'i32.trunc_f32_s': 0xA8, 'i32.trunc_f32_u': 0xA9,
-        'i32.trunc_f64_s': 0xAA, 'i32.trunc_f64_u': 0xAB,
-        'i64.extend_i32_s': 0xAC, 'i64.extend_i32_u': 0xAD,
-        'i64.trunc_f32_s': 0xAE, 'i64.trunc_f32_u': 0xAF,
-        'i64.trunc_f64_s': 0xB0, 'i64.trunc_f64_u': 0xB1,
-        'f32.convert_i32_s': 0xB2, 'f32.convert_i32_u': 0xB3,
-        'f32.convert_i64_s': 0xB4, 'f32.convert_i64_u': 0xB5,
-        'f32.demote_f64': 0xB6,
-        'f64.convert_i32_s': 0xB7, 'f64.convert_i32_u': 0xB8,
-        'f64.convert_i64_s': 0xB9, 'f64.convert_i64_u': 0xBA,
-        'f64.promote_f32': 0xBB,
-        'i32.reinterpret_f32': 0xBC, 'i64.reinterpret_f64': 0xBD,
-        'f32.reinterpret_i32': 0xBE, 'f64.reinterpret_i64': 0xBF,
-    };
-
     function error(msg) { throw new Error(msg); }
     function assert(x, msg) {
         if (!x) { error(msg); }
@@ -1123,7 +1134,6 @@ function assemble(mod) {
     }
 
     function emitResultType(enc, x) {
-        for (let [k,v] of Object.entries(x)) { print(k, v); }
         emitVec(enc, x, emitValType);
     }
 
@@ -1169,23 +1179,28 @@ function assemble(mod) {
         emitU8(enc, enc, x.mut ? 0x01 : 0x00);
     }
 
+    function emitName(enc, x) {
+        emitVec(enc, x, emitU8);
+    }
+
     function emitInstruction(enc, x) {
         let [tag, ...args] = x;
         print(tag);
-        emitU8(enc, assert(opcodes[tag], `bad instruction: ${x}`));
+        assert(tag in opcodes, `bad instruction: ${x}`);
+        emitU8(enc, opcodes[tag]);
         switch (tag) {
         case 'block':
         case 'loop':
-            emitBlockType(enc, args[0]);
-            emitInstructions(enc, args[1]);
+            emitBlockType(enc, args[1]);
+            emitInstructions(enc, args[2]);
             emitU8(enc, opcodes.end);
             break;
         case 'if':
-            emitBlockType(enc, args[0]);
-            emitInstructions(enc, args[1]);
-            if (args[2].length) {
+            emitBlockType(enc, args[1]);
+            emitInstructions(enc, args[2]);
+            if (args[3].length) {
                 emitU8(enc, opcodes['else']);
-                emitInstructions(enc, args[2]);
+                emitInstructions(enc, args[3]);
             }
             emitU8(enc, opcodes.end);
             break;
@@ -1244,7 +1259,6 @@ function assemble(mod) {
     function emitFuncType(enc, x) {
         emitU8(enc, 0x60);
         emitResultType(enc, x.params.map(t=>{
-            for (let [k,v] of Object.entries(t)) { print(k, v); }
             return t.type;
         }));
         emitResultType(enc, x.results);
@@ -1287,7 +1301,8 @@ function assemble(mod) {
     function emitExport(enc, x) {
         const kinds = { func: 0x00, table: 0x01, mem: 0x02, global: 0x03 };
         emitName(enc, x.name);
-        emitU8(enc, assert(kinds[x.kind], `bad kind: ${x.kind}`));
+        assert(x.kind in kinds, `bad kind: ${x.kind}`)
+        emitU8(enc, kinds[x.kind]);
         emitU32(enc, x.idx);
     }
 
@@ -1368,14 +1383,3 @@ function assemble(mod) {
 export default function wassemble(str) {
     return assemble(parse(read(str)));
 }
-
-/*
-wasmFailValidateText(`
-  (module
-    (func $add (param i32 i32) (result i32)
-      (i32.add
-        (block (result i32 i32 i32)
-          (local.ref 0) (local.ref 1) (local.ref 0))))
-    (export $add "add"))`)
-
-*/
