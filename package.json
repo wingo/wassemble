@@ -1,6 +1,6 @@
 {
   "name": "wassemble",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Encoder from WebAssembly text format (wat) to binary (wasm)",
   "main": "wassemble",
   "repository": {

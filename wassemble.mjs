@@ -1181,7 +1181,6 @@ function assemble(mod) {
 
     function emitInstruction(enc, x) {
         let [tag, ...args] = x;
-        print(tag);
         assert(tag in opcodes, `bad instruction: ${x}`);
         emitU8(enc, opcodes[tag]);
         switch (tag) {
