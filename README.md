@@ -28,6 +28,26 @@ npm install wassemble
 As this project has no dependencies, alternately you can just drop
 `wassemble.mjs` anywhere in your project tree.
 
+## Usage
+
+Assuming you installed via NPM, this code compiles a WebAssembly `add`
+function, synchronously instantiates it, and adds a couple numbers:
+
+```js
+import wassemble from 'wassemble/wassemble.mjs';
+
+let bytes = wassemble(`
+  (module
+    (func $add (export "add") (param i32 i32) (result i32)
+      (i32.add (local.get 0) (local.get 1))))`)
+
+let mod = new WebAssembly.Instance(new WebAssembly.Module(bytes));
+
+console.log(mod.exports.add(10, 32));
+```
+
+Of course it's better to use `WebAssembly.instantiate` if possible.
+
 ## License
 
 `wassemble` is available under the [Blue Oak Model
