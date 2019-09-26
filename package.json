@@ -1,11 +1,8 @@
 {
   "name": "wassemble",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Encoder from WebAssembly text format (wat) to binary (wasm)",
   "main": "wassemble",
-  "scripts": {
-    "test": "foo"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/wingo/wassemble.git"
@@ -15,7 +12,8 @@
     "wasm",
     "wat",
     "compiler",
-    "encoder"
+    "encoder",
+    "assembler"
   ],
   "author": "Andy Wingo",
   "license": "BlueOak-1.0.0",
