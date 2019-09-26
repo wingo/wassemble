@@ -1,13 +1,9 @@
 // Use of this source code is governed by the Blue Oak Model License
-// 1.0.0; see LICENSE.
+// 1.0.0; see LICENSE.md or https://blueoakcouncil.org/license/1.0.0.
 
 class Encoder extends Array {
     u8(val) {
         this.push(val);
-    }
-    u32le(val) {
-        this.push((val >>>  0) & 0xff, (val >>>  8) & 0xff,
-                  (val >>> 16) & 0xff, (val >>> 24) & 0xff);
     }
     sleb(val) {
         for (;;) {
