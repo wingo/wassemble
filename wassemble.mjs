@@ -1,15 +1,20 @@
-// Use of this source code is governed by the Blue Oak Model License
-// 1.0.0; see LICENSE.md or https://blueoakcouncil.org/license/1.0.0.
+// This module is imported from https://github.com/wingo/wassemble.
+// Its source code is governed by the Blue Oak Model License
+// 1.0.0, which is available on the web at
+// https://blueoakcouncil.org/license/1.0.0.
 
 class Encoder extends Array {
     u8(val) {
         this.push(val);
     }
+    u32le(val) {
+        this.push((val >>>  0) & 0xff, (val >>>  8) & 0xff,
+                  (val >>> 16) & 0xff, (val >>> 24) & 0xff);
+    }
     sleb(val) {
         for (;;) {
-            let u8 = (val + 64n) & 0x7fn;
-            if (u8 == head) {
-                this.u8(Number(u8));
+            if (val + 64n == ((val + 64n) & 0x7fn)) {
+                this.u8(Number(val & 0x7fn));
                 return;
             }
             this.u8(Number(0x80n | u8));
@@ -560,11 +565,17 @@ function parse(expr) {
             while (!empty(elseInsts)) { input.unshift(elseInsts.pop()); }
             input.unshift('else');
             while (!empty(thenInsts)) { input.unshift(thenInsts.pop()); }
-            if (blockType.idx) {
-                input.unshift(['type', blockType.idx]);
+            if (type.idx) {
+                input.unshift(['type', type.idx]);
             } else {
-                input.unshift(['param', ...type.params],
-                              ['result', ...type.results]);
+                input.unshift(['result', ...type.results]);
+                for (let p of type.params) {
+                    if (p.id) {
+                        input.unshift(['param', p.id, p.type]);
+                    } else {
+                        input.unshift(['param', p.type]);
+                    }
+                }
             }
             if (label) { input.unshift(label); }
             input.unshift('if');
