@@ -1,4 +1,4 @@
-// This module is imported from https://github.com/wingo/wassemble.
+// This module is part of https://github.com/wingo/wassemble.
 // Its source code is governed by the Blue Oak Model License
 // 1.0.0, which is available on the web at
 // https://blueoakcouncil.org/license/1.0.0.
@@ -1330,7 +1330,7 @@ function assemble(mod) {
         }
         emitBytes(enc, enc => {
             emitVec(enc, compressedLocals, (enc, locals) => {
-                emitU32(enc, locals.count);
+                emitU32(enc, BigInt(locals.count));
                 emitValType(enc, locals.type)
             });
             emitExpr(enc, x.body);
